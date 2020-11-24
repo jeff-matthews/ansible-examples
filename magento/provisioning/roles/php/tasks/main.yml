@@ -1,9 +1,9 @@
 ---
-- name: Add repo
+- name: Adding PHP repo
   become: yes
   shell: add-apt-repository ppa:ondrej/php
 
-- name: Install PHP and PHP packages
+- name: Installing PHP and PHP packages
   become: yes
   apt:
     update_cache: yes

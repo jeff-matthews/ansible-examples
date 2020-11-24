@@ -1,0 +1,28 @@
+- name: Add MySQL APT key by id from a keyserver
+  apt_key:
+    keyserver: pgp.mit.edu/
+    id: 5072E1F5
+
+- name: Adding APT repository for MySQL
+  become: yes
+  apt_repository:
+    repo: deb http://repo.mysql.com/apt/ubuntu bionic mysql-8.0
+    filename: mysql
+    state: absent
+    update_cache: yes
+
+- name: Installing MySQL packages
+  become: yes
+  apt:
+    pkg:
+    - python-mysqldb
+    - mysql-server
+    - mysql-client
+
+# - name: Create a database
+#   become: true
+#   mysql_db: name=magento2
+
+# - name: Create a dedicated user
+#   become: true
+#   mysql_user: name=magento2 password=magento2 priv=magento2.*:ALL,GRANT
