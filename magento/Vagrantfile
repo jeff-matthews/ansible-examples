@@ -1,0 +1,23 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure(2) do |config|
+  config.vm.box = "ubuntu/bionic64"
+  config.vm.hostname = "magento2-devbox"
+  config.vm.network "private_network", ip: "192.168.33.10"
+
+  # Virtual box config
+  config.vm.provider "virtualbox" do |vb|
+    vb.gui = false
+    vb.memory = "2048"
+    vb.cpus = 2
+    vb.customize ["modifyvm", :id, "--name", "magento2-devbox"]
+  end
+
+  # Provisioning
+  config.vm.provision "ansible_local" do |ansible|
+    ansible.playbook = "provisioning/playbook.yml"
+    ansible.verbose = "vvvv"
+  end
+
+end

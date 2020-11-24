@@ -1,0 +1,11 @@
+---
+# Ansible playbook for a LEMP server.
+#
+# @author Jeff Matthews (2020).
+
+- name: Set up a dev stack for Magento2 on Ubuntu 18.04
+  hosts: all
+  become: no
+  become_method: sudo
+  roles:
+    - php
