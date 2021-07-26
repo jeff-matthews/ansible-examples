@@ -14,7 +14,7 @@
 
     - name: Install LEMP Packages
       apt: name={{ item }} update_cache=yes state=latest
-      loop: [ 'nginx', 'mysql-server', 'python3-pymysql', 'php-fpm', 'php-mysql' ]
+      loop: [ 'nginx', 'php-fpm', 'php-mysql' ]
     
 # Nginx Configuration
     - name: Sets Nginx conf file
@@ -36,26 +36,52 @@
       notify: Reload Nginx
 
 # MySQL Configuration
+
+    # - name: Specify MySQL root password before installing
+    #   # without this, auth_socket will be used for root@localhost, and we won't be able to set the password
+    #   debconf:
+    #     name: 'mysql-server'
+    #     question: 'mysql-server/root_password'
+    #     value: "{{ mysql_root_password }}"
+    #     vtype: 'password'
+    #   become: yes
+
+    # - name: Confirm MySQL root password before installing
+    #   debconf:
+    #     name: 'mysql-server'
+    #     question: 'mysql-server/root_password'
+    #     value: "{{ mysql_root_password }}"
+    #     vtype: 'password'
+    #   become: yes
+
+    - name: Install MySQL server
+      apt: name={{ item }} state=present
+      with_items:
+        - mysql-server
+        - python3-pymysql
+      become: yes
+
+    - name: Start MySQL
+      service:
+        name: mysql 
+        state: started
+        enabled: true
+      become: yes
+
+    - name: Create /root/.my.cnf (from template) with password credentials
+      template:
+        src: files/my.cnf.j2
+        dest: /root/.my.cnf
+        owner: jeff
+        mode: 0600
+      become: yes
+      notify: Restart MySQL
+
     - name: Sets the root password 
       mysql_user: 
+        login_unix_socket: /var/run/mysqld/mysqld.sock
         name: root 
         password: "{{ mysql_root_password }}"
-        login_unix_socket: /var/run/mysqld/mysqld.sock
-
-    - name: Removes all anonymous user accounts
-      mysql_user:
-        name: ''
-        host_all: yes
-        state: absent
-        login_user: root
-        login_password: "{{ mysql_root_password }}"
-
-    - name: Removes the MySQL test database
-      mysql_db: 
-        name: test 
-        state: absent
-        login_user: root
-        login_password: "{{ mysql_root_password }}"
 
 # UFW Configuration
     - name: "UFW - Allow HTTP on port {{ http_port }}"
@@ -80,3 +106,9 @@
       service:
         name: nginx
         state: restarted
+
+    - name: Restart MySQL
+      service:
+        name: mysql
+        state: restarted
+
