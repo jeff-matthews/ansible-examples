@@ -87,7 +87,7 @@
     - name: Sets the root password 
       mysql_user: 
         name: root 
-        login_user: jeff
+        login_user: root
         login_password: "{{ mysql_root_password }}"
         login_unix_socket: /var/run/mysqld/mysqld.sock
 
