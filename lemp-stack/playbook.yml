@@ -68,6 +68,13 @@
         enabled: true
       become: yes
 
+    # - name: Add a mysql user
+    #   mysql_user:
+    #     name: bob
+    #     password: 12345
+    #     priv: '*.*:ALL,GRANT'
+    #     state: present
+
     - name: Create /root/.my.cnf (from template) with password credentials
       template:
         src: files/my.cnf.j2
@@ -79,9 +86,10 @@
 
     - name: Sets the root password 
       mysql_user: 
-        login_unix_socket: /var/run/mysqld/mysqld.sock
         name: root 
-        password: "{{ mysql_root_password }}"
+        login_user: jeff
+        login_password: "{{ mysql_root_password }}"
+        login_unix_socket: /var/run/mysqld/mysqld.sock
 
 # UFW Configuration
     - name: "UFW - Allow HTTP on port {{ http_port }}"
