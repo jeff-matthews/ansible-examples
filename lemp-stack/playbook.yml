@@ -37,23 +37,6 @@
 
 # MySQL Configuration
 
-    # - name: Specify MySQL root password before installing
-    #   # without this, auth_socket will be used for root@localhost, and we won't be able to set the password
-    #   debconf:
-    #     name: 'mysql-server'
-    #     question: 'mysql-server/root_password'
-    #     value: "{{ mysql_root_password }}"
-    #     vtype: 'password'
-    #   become: yes
-
-    # - name: Confirm MySQL root password before installing
-    #   debconf:
-    #     name: 'mysql-server'
-    #     question: 'mysql-server/root_password'
-    #     value: "{{ mysql_root_password }}"
-    #     vtype: 'password'
-    #   become: yes
-
     - name: Install MySQL server
       apt: name={{ item }} state=present
       with_items:
@@ -68,13 +51,6 @@
         enabled: true
       become: yes
 
-    # - name: Add a mysql user
-    #   mysql_user:
-    #     name: bob
-    #     password: 12345
-    #     priv: '*.*:ALL,GRANT'
-    #     state: present
-
     - name: Create /root/.my.cnf (from template) with password credentials
       template:
         src: files/my.cnf.j2
@@ -84,12 +60,28 @@
       become: yes
       notify: Restart MySQL
 
-    - name: Sets the root password 
+    - name: Set the default root password
+      mysql_user:
+        name: root
+        password: "{{ mysql_root_password }}"
+        check_implicit_admin: true
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+
+    - name: Update the mysql root password for all root accounts
+      become: yes
       mysql_user: 
         name: root 
+        host: "{{ item }}" 
+        password: "{{ mysql_root_password }}"
         login_user: root
         login_password: "{{ mysql_root_password }}"
-        login_unix_socket: /var/run/mysqld/mysqld.sock
+        check_implicit_admin: yes
+        priv: "*.*:ALL,GRANT"
+      with_items:
+        - "{{ http_host }}"
+        - 127.0.0.1
+        - ::1
+        - localhost 
 
 # UFW Configuration
     - name: "UFW - Allow HTTP on port {{ http_port }}"
